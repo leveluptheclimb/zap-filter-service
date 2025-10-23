@@ -14,8 +14,8 @@ def version():
     return jsonify(VERSION_INFO)
 
 
-@app.route("/evaluate", methods=["POST"])
-def evaluate():
+@app.route("/filter_keywords", methods=["POST"])
+def filter_keywords():
     """Evaluate RSS title + description for relevance based on keyword list."""
     data = request.get_json(force=True)
     title = (data.get("title") or "").lower()
@@ -118,6 +118,7 @@ if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+
 
 
 
