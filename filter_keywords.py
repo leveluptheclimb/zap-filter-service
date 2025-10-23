@@ -2,6 +2,13 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
+VERSION_INFO = {
+    "service": "zap-filter-service",
+    "version": "v2.0 – full keyword logic",
+    "description": "Flask prefilter for Zapier RSS relevance"
+}
+
+
 @app.route("/evaluate", methods=["POST"])
 def evaluate():
     """Evaluate RSS title + description for relevance based on keyword list."""
@@ -97,7 +104,8 @@ def evaluate():
 
     return jsonify({
         "isRelevant": is_relevant,
-        "matchedKeywords": matched
+        "matchedKeywords": matched,
+        **VERSION_INFO
     })
 
 
@@ -105,4 +113,5 @@ if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+
 
