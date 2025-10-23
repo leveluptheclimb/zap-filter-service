@@ -8,6 +8,11 @@ VERSION_INFO = {
     "description": "Flask prefilter for Zapier RSS relevance"
 }
 
+@app.route("/", methods=["GET"])
+def version():
+    """Return version info for health checks and observability."""
+    return jsonify(VERSION_INFO)
+
 
 @app.route("/evaluate", methods=["POST"])
 def evaluate():
@@ -113,5 +118,6 @@ if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+
 
 
