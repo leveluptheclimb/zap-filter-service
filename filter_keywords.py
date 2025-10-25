@@ -1,10 +1,11 @@
 from flask import Flask, request, jsonify
+import re
 
 app = Flask(__name__)
 
 VERSION_INFO = {
     "service": "zap-filter-service",
-    "version": "v2.0 – full keyword logic",
+    "version": "v2.1 – word-boundary matching",
     "description": "Flask prefilter for Zapier RSS relevance"
 }
 
@@ -22,12 +23,12 @@ def filter_keywords():
     description = (data.get("description") or "").lower()
     text = f"{title} {description}"
 
-    # Massive keyword list ported from your Zapier JS
+    # Massive keyword list ported from Zapier JS
     keywords = [
         # --- New developments ---
         "new hq","new headquarters","new head-quarters","new office","new site","new location","new store","new outlet",
         "new facility","new building","new campus","new space","new workspace","new premises","new studio",
-        "new distribution", "new warehouse","new development","new scheme",
+        "new distribution","new warehouse","new development","new scheme",
         "new project","new division","new hub","new branch","new regional office","new production site",
         "new logistics park","new innovation centre","new science park","new headquarters building",
         "new london office","new uk hq","new european hq","new company office",
@@ -68,7 +69,7 @@ def filter_keywords():
         "allied london","arup real estate","chelsfield","city of london corporation","city of london","workspace group","landlord london",
         "knight frank","cbre","aviva",
         "legal & general","mitsubishi estate","hb reavis","almacantar",
-        "fore partnership","re capital","stanhope","native land","dominvs group","king’s cross","kings cross",
+        "fore partnership","re capital","stanhope","native land","dominvs group","king's cross","kings cross",
         "related argent","howard group","tellon capital","labtech","seaforth land","great western developments",
         "cityhold office partnership","pembroke real estate","quadrant estates","fabrix","greycoat",
         "tishman speyer","hines","northacre","trilogy real estate","orion capital",
@@ -86,7 +87,7 @@ def filter_keywords():
 
         # --- Contractors ---
         "balfour beatty","isg","morgan sindall","kier group","willmott dixon","skanska","sir robert mcalpine",
-        "bam construct uk","laing o’rourke","mace","wates group","galliford try","volkerwessels","lendlease",
+        "bam construct uk","laing o'rourke","mace","wates group","galliford try","volkerwessels","lendlease",
         "john sisk & son","bouygues","mclaren","overbury","bw workplace experts","tclarke","structuretone",
         "multiplex","oktra","od group","collins construction","modus","fourfront","faithdean","knight harwood",
 
@@ -104,7 +105,12 @@ def filter_keywords():
         "regional update","company moves","property news","openings roundup","sq ft","storey","digest","weekly digest","property digest"
     ]
 
-    matched = [k for k in keywords if k in text]
+    matched = []
+    for k in keywords:
+        pattern = r'\b' + re.escape(k) + r'\b'
+        if re.search(pattern, text, re.IGNORECASE):
+            matched.append(k)
+    
     is_relevant = len(matched) > 0
 
     return jsonify({
@@ -118,7 +124,3 @@ if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
-
-
-
-
