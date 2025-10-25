@@ -1,14 +1,13 @@
 from flask import Flask, request, jsonify
 import re
+
 print("zap-filter-service ready and waiting for incoming RSS items...")
-
-
 
 app = Flask(__name__)
 
 VERSION_INFO = {
     "service": "zap-filter-service",
-    "version": "v2.1 – word-boundary matching",
+    "version": "v2.2 – simplified substring matcher",
     "description": "Flask prefilter for Zapier RSS relevance"
 }
 
@@ -39,80 +38,43 @@ def filter_keywords():
 
         # --- Occupier and movement ---
         "relocating","relocation","relocate","relocates","move","moves","moving","move-in","move-out","move office","move hq",
-        "headquarters","new headquarters","hq","hq moves","head office","new hq","office move","office relocation",
-        "sets up office","relocates operations","consolidating offices","shifted base","strategic decision to move",
-        "closer to clients","better connected location","improved transport links","co-locating teams",
-        "regional hub","new division","builds out team","increased demand for space","access to talent",
+        "headquarters","office move","office relocation","sets up office","relocates operations","consolidating offices",
+        "regional hub","builds out team","increased demand for space","access to talent",
 
         # --- Leasing and tenancy ---
-        "lease","leases","leasing","leased","lease signed","new lease","signs lease","long-term lease","pre-let","prelet","pre let",
-        "lets space","let","lets","letting","occupancy deal","tenancy secured","agreement with landlord",
-        "landlord","new tenant","taking space","occupies space","occupier secured",
+        "lease","leases","leasing","leased","new lease","signs lease","pre-let","prelet","taking space","new tenant",
 
         # --- Growth and expansion ---
-        "expanding","expand","expands","expansion","growth","grows","scaling up","plans to grow","headcount","new hires",
-        "creates jobs","growth plans","larger","next phase","next act","plans to grow","scaling up",
+        "expanding","expand","expands","expansion","growth","grows","creates jobs","headcount","new hires",
 
         # --- Construction and development ---
-        "construction","development","developments","project","projects","scheme","redevelopment","refurbishment",
-        "fit-out","fitout","retrofit","new build","build","builds","building","built","workspace","flexible workspace",
-        "facility","facilities","campus","estate","region","new site","new location","new office","new store","new outlet",
+        "construction","development","scheme","redevelopment","refurbishment","fit-out","fitout","retrofit",
+        "workspace","facility","facilities","campus","estate","region",
 
         # --- Investment and acquisition ---
-        "invest","invests","investing","investment","acquisition","acquisitions","acquire","acquires","acquiring","adds",
-        "added","portfolio acquisition","forward purchase","forward funding","sale and leaseback","disposal","divestment",
-        "capital partner","joint venture","joint venture partner","backs development","funds scheme","securing finance",
-        "raises capital","equity investment","acquires stake","investment vehicle","property fund","real estate fund",
-        "asset manager","fund manager","investment trust","pension fund","private equity","sovereign wealth fund",
-        "institutional investor","property company","property developer","estate owner","compulsary purchase",
+        "invest","invests","investing","investment","acquisition","acquire","acquires","funds scheme","backs development",
+        "joint venture","real estate fund","asset manager","fund manager","property company","property developer",
+        "reit","landlord","pension fund","investment trust","institutional investor","private equity",
 
-        # --- REIT and institutional names ---
-        "reit","ftse","lse-listed","aim-listed","british land","storey","great portland estates","gpe",
-        "derwent london","howard de walden estate","howard de walden","the crown estate","cadogan estate","grosvenor","crown estate",
-        "portman estate","shaftesbury capital","helical","landsec","canary wharf group","brookfield properties","axa im alts","canary wharf","brookfield",
-        "allied london","arup real estate","chelsfield","city of london corporation","city of london","workspace group","landlord london",
-        "knight frank","cbre","aviva",
-        "legal & general","mitsubishi estate","hb reavis","almacantar",
-        "fore partnership","re capital","stanhope","native land","dominvs group","king's cross","kings cross",
-        "related argent","howard group","tellon capital","labtech","seaforth land","great western developments",
-        "cityhold office partnership","pembroke real estate","quadrant estates","fabrix","greycoat",
-        "tishman speyer","hines","northacre","trilogy real estate","orion capital",
-        "royal london","capital & counties","capco","helical bar","hb reavis","cls holdings",
-        "city developments limited","hanover","sirosa","topland","supermarket income reit",
-        "logistics reit","retail reit","student reit",
-
-        # --- Agencies and advisors ---
-        "cushman & wakefield","cbre","jll","knight frank","savills","colliers","avison young","bnp paribas real estate","bnp",
-        "newton perkins","rx london","brasier freeth","kontor","kirkby diamond","edward charles & partners","edward charles",
-
-        # --- Facilities / FM firms ---
-        "mitie","iss uk","sodexo","equans","emcor uk","vinci facilities","cbre gws","bellrock","integral uk",
-        "ocs","serco","capita","turner & townsend","faithful+gould","mace operate","aramark","skanska",
-
-        # --- Contractors ---
-        "balfour beatty","isg","morgan sindall","kier group","willmott dixon","skanska","sir robert mcalpine",
-        "bam construct uk","laing o'rourke","mace","wates group","galliford try","volkerwessels","lendlease",
-        "john sisk & son","bouygues","mclaren","overbury","bw workplace experts","tclarke","structuretone",
-        "multiplex","oktra","od group","collins construction","modus","fourfront","faithdean","knight harwood",
+        # --- Names and advisors ---
+        "cbre","jll","savills","knight frank","avison young","bnp paribas real estate","cushman & wakefield",
+        "british land","landsec","derwent london","canary wharf","grosvenor","helical","brookfield","axa im alts",
+        "legal & general","aviva","hines","tishman speyer","mace","skanska","isg","balfour beatty","morgan sindall",
 
         # --- Sector types ---
-        "logistics park","industrial estate","distribution centre","warehouse","industrial unit","data centre",
-        "life sciences","biotech hub","innovation campus","film studio","mixed-use scheme","residential development",
-        "build-to-rent","btr","prs","student housing","co-living","hotel","hospitality","care home","retirement village",
+        "logistics park","industrial estate","distribution centre","warehouse","data centre","life sciences",
+        "innovation campus","film studio","mixed-use scheme","residential development","student housing","hotel",
 
         # --- Planning and milestones ---
-        "planning permission","planning approved","consent granted","planning application","pre-application",
-        "outline consent","construction underway","tops out","completion due","pc achieved","handed over","practical completion",
+        "planning permission","planning approved","consent granted","planning application","construction underway",
+        "completion due","practical completion",
 
         # --- Digest markers ---
-        "round-up","roundup","weekly roundup","monthly round-up","deal sheet","latest deals","market update",
-        "regional update","company moves","property news","openings roundup","sq ft","storey","digest","weekly digest","property digest"
+        "round-up","roundup","weekly roundup","monthly round-up","deal sheet","market update","property news","digest"
     ]
-
 
     matched = [k for k in keywords if k.lower() in text]
     is_relevant = bool(matched)
-
 
     return jsonify({
         "isRelevant": is_relevant,
@@ -120,18 +82,14 @@ def filter_keywords():
         **VERSION_INFO
     })
 
+
 print("=== REGISTERED ROUTES ON STARTUP ===")
 for rule in app.url_map.iter_rules():
     print(f"{rule.endpoint}: {rule.rule} [{','.join(rule.methods)}]")
 print("=====================================")
 
 
-
 if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
-
-
-
-
