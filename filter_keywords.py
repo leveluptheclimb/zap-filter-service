@@ -109,13 +109,10 @@ def filter_keywords():
         "regional update","company moves","property news","openings roundup","sq ft","storey","digest","weekly digest","property digest"
     ]
 
-    matched = []
-    for k in keywords:
-        pattern = r'\b' + re.escape(k) + r'\b'
-        if re.search(pattern, text, re.IGNORECASE):
-            matched.append(k)
-    
-    is_relevant = len(matched) > 0
+
+    matched = [k for k in keywords if k.lower() in text]
+    is_relevant = bool(matched)
+
 
     return jsonify({
         "isRelevant": is_relevant,
@@ -134,6 +131,7 @@ if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+
 
 
 
