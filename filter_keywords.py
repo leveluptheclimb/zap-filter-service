@@ -123,10 +123,17 @@ def filter_keywords():
         **VERSION_INFO
     })
 
+print("=== REGISTERED ROUTES ON STARTUP ===")
+for rule in app.url_map.iter_rules():
+    print(f"{rule.endpoint}: {rule.rule} [{','.join(rule.methods)}]")
+print("=====================================")
+
+
 
 if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+
 
 
