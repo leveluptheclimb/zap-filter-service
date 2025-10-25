@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
 import re
-print("Filter hit:", title)
+print("zap-filter-service ready and waiting for incoming RSS items...")
+
+
 
 app = Flask(__name__)
 
@@ -23,6 +25,7 @@ def filter_keywords():
     title = (data.get("title") or "").lower()
     description = (data.get("description") or "").lower()
     text = f"{title} {description}"
+    print("Filter hit:", title)
 
     # Massive keyword list ported from Zapier JS
     keywords = [
@@ -125,4 +128,5 @@ if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+
 
